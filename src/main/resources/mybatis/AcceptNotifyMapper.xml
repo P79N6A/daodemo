@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 2019年04月17日 10时20分16秒 by Generator -->
+<mapper namespace="com.djs.daodemo.dao.CourseMapper">
+
+  <resultMap id="doubleSide" type="DoubleSide">
+    <association property="stuBasList" autoMapping="true" javaType="StuBas">
+      <!--<result column="sno" property="sno"></result>
+      <result column="average_score" property="averageScore"></result>
+      <result column="failed_subjects_nums" property="failedSubjectsNums"></result>-->
+    </association>
+    <collection property="courseList" ofType="Course" autoMapping="true">
+      <!-- <result column="sno" property="sno"></result>
+       <result column="cno" property="cno"></result>
+       <result column="grade" property="grade"></result>-->
+    </collection>
+  </resultMap>
+
+  <sql id="courseMapper">
+    sno as sno ,cno as cno,grade as grade
+  </sql>
+  <sql id="stu_bas">
+    average_score as average,
+    failed_subjects_nums as failed
+  </sql>
+  <resultMap id="courseAndStuBas" type="com.djs.daodemo.bean.CourseAndStuBas">
+    <result column="sno" property="sno"></result>
+    <result column="cno" property="cno"></result>
+    <result column="grade" property="grade"></result>
+    <result column="average_score" property="average"></result>
+    <result column="failed_subjects_nums" property="failed"></result>
+  </resultMap>
+  <select id="selectAll" resultType="Course">
+    select
+    <include refid="courseMapper"/>
+    from course
+  </select>
+
+  <select id="selectAllToCAndS" resultMap="courseAndStuBas">
+    select * from course
+  </select>
+
+  <select id="selectAllStuBas" resultMap="courseAndStuBas">
+    select
+    <include refid="stu_bas"></include>
+    from stu_bas
+    where
+     sno in
+    <foreach collection="lists" item="list" open="(" close=")" separator=",">
+      #{list.sno}
+    </foreach>
+  </select>
+
+  <select id="selectByCno" resultType="Course">
+    select * from course
+    <where>
+      <if test="cno!=null">
+        AND cno = #{cno}
+      </if>
+    </where>
+  </select>
+
+  <select id="selectWithTwice" resultMap="doubleSide">
+    select * from course left join stu_bas on course.sno = stu_bas.sno
+    where stu_bas.average_score = #{avgScore} and course.sno = #{sno}
+  </select>
+
+  <insert id="insertToMuch">
+    insert into sta values
+    <foreach collection="staList" item="sta" separator=",">
+      (#{sta.num},#{sta.string,jdbcType=VARCHAR})
+    </foreach>
+  </insert>
+</mapper>
